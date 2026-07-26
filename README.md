@@ -133,20 +133,8 @@ supabase/
 
 ---
 
-## Admin guide
 
-| Mode | How to sign in |
-|------|----------------|
-| **Demo (no Supabase)** | Go to `/admin` → password `niza-admin` |
-| **Production** | Create a Supabase Auth user → sign in with email & password |
-
-### What admin controls on the customer shop
-1. **Products** — edit name, sale price, original (strike) price, stock, badges, flash flag, sold out
-2. **Offers & Flash** — show/hide flash banner, title, subtitle, end time (`+6h` / `+24h`), promo strip, delivery fee
-3. Changes appear instantly on Home, product pages, cart totals, and WhatsApp messages
-
----
-
+| Mode | How to sign in 
 ## WhatsApp order flow
 
 1. Customer adds items to cart  
