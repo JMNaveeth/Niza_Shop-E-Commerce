@@ -82,12 +82,13 @@ export default function ProductViewer3D({
   const [spin, setSpin] = useState(autoSpin)
 
   return (
-    <div className="relative h-full w-full">
+    <div className="absolute inset-0 h-full w-full">
       <Canvas
         camera={{ position: [0, 0.4, 3.5], fov: 42 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: false }}
         onPointerDown={() => setSpin(false)}
+        style={{ width: '100%', height: '100%', display: 'block' }}
       >
         <color attach="background" args={['#14121f']} />
         <ambientLight intensity={0.75} />

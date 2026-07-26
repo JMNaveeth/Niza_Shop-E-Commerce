@@ -3,6 +3,7 @@ import HeroSection from '../components/Hero/HeroSection'
 import GenderTabs from '../components/Categories/GenderTabs'
 import CategoryChips from '../components/Categories/CategoryChips'
 import FlashBanner from '../components/FlashSale/FlashBanner'
+import FlashSaleOffers from '../components/FlashSale/FlashSaleOffers'
 import ProductGrid from '../components/Products/ProductGrid'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
@@ -16,6 +17,11 @@ export default function Home() {
   const [gender, setGender] = useState<Gender>('all')
   const [categorySlug, setCategorySlug] = useState<string | null>(null)
   const catalogRef = useRef<HTMLDivElement>(null)
+
+  const flashProducts = useMemo(
+    () => products.filter((p) => p.is_flash_sale),
+    [products],
+  )
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -32,6 +38,8 @@ export default function Home() {
     catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  const showFlashSection = offers.flashSaleEnabled
+
   return (
     <div className="pb-mobile-nav md:pb-0">
       <HeroSection onShopNow={scrollToCatalog} />
@@ -40,7 +48,12 @@ export default function Home() {
         ref={catalogRef}
         className="mx-auto max-w-6xl space-y-4 px-3 py-6 sm:space-y-6 sm:px-4 sm:py-10 scroll-mt-16"
       >
-        <FlashBanner />
+        {showFlashSection && (
+          <div className="space-y-4 sm:space-y-5">
+            <FlashBanner />
+            <FlashSaleOffers products={flashProducts} />
+          </div>
+        )}
 
         {offers.promoBannerEnabled && offers.promoBannerText.trim() && (
           <div className="rounded-2xl bg-gold/15 px-3 py-3 text-center text-sm font-semibold leading-snug text-amber-900 ring-1 ring-gold/30 sm:rounded-card sm:px-4">

@@ -57,12 +57,13 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
 
       <div className="mt-3 grid gap-5 sm:mt-6 sm:gap-8 lg:grid-cols-2">
         <div className="space-y-3 sm:space-y-4">
-          <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50 ring-1 ring-border sm:rounded-card">
+          {/* Shared frame — Photo & 360° always same size */}
+          <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50 ring-1 ring-border sm:rounded-card">
             {mode === '360' ? (
-              <div className="aspect-square sm:h-80">
+              <div className="absolute inset-0 bg-[#14121f]">
                 <Suspense
                   fallback={
-                    <div className="flex h-full items-center justify-center bg-[#14121f] text-sm text-white/60">
+                    <div className="flex h-full w-full items-center justify-center text-sm text-white/60">
                       Loading 360° viewer…
                     </div>
                   }
@@ -75,7 +76,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
                 </Suspense>
               </div>
             ) : (
-              <div className="flex aspect-square items-center justify-center text-7xl sm:text-9xl">
+              <div className="absolute inset-0 flex items-center justify-center text-7xl sm:text-9xl">
                 {hasPhotos ? (
                   <img
                     src={photos[activeImage] ?? photos[0]}
@@ -110,7 +111,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
             <button
               type="button"
               onClick={() => setMode('photo')}
-              className={`min-h-11 rounded-xl text-sm font-semibold ring-1 transition ${
+              className={`flex h-11 items-center justify-center rounded-xl text-sm font-semibold ring-1 transition ${
                 mode === 'photo'
                   ? 'bg-dark text-white ring-dark'
                   : 'bg-white text-gray-700 ring-border'
@@ -121,7 +122,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
             <button
               type="button"
               onClick={() => setMode('360')}
-              className={`min-h-11 rounded-xl text-sm font-semibold ring-1 transition ${
+              className={`flex h-11 items-center justify-center rounded-xl text-sm font-semibold ring-1 transition ${
                 mode === '360'
                   ? 'bg-primary text-white ring-primary'
                   : 'bg-white text-gray-700 ring-border'
