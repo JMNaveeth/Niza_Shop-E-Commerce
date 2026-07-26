@@ -28,6 +28,8 @@ interface CatalogState {
   offers: ShopOffers
   loading: boolean
   hydrated: boolean
+  /** Bumps on every admin change so every subscriber re-renders instantly */
+  revision: number
   initCatalog: () => Promise<void>
   setProducts: (products: Product[]) => void
   addProduct: (input: ProductInput) => Promise<Product>
@@ -61,30 +63,20 @@ export const useCatalogStore = create<CatalogState>()(
       offers: DEFAULT_OFFERS,
       loading: false,
       hydrated: false,
+      revision: 0,
 
       initCatalog: async () => {
-        if (get().hydrated && get().products.length > 0) {
-          // Still refresh from Supabase when configured
-          if (!isSupabaseConfigured || !supabase) return
-        }
+        // Never wipe admin edits on navigation — local catalog is live source of truth.
+        // Only pull from Supabase when the catalog is still the empty seed bootstrap.
+        set({ hydrated: true, loading: false })
 
-        set({ loading: true })
+        if (!isSupabaseConfigured || !supabase) return
 
-        if (!isSupabaseConfigured || !supabase) {
-          const current = get().products
-          if (!current.length) {
-            set({
-              products: attachCategories(SEED_PRODUCTS, SEED_CATEGORIES),
-              loading: false,
-              hydrated: true,
-            })
-          } else {
-            set({
-              products: current.map(withCategory),
-              loading: false,
-              hydrated: true,
-            })
-          }
+        const current = get().products
+        const onlySeed =
+          current.length > 0 && current.every((p) => !p.id.startsWith('local-'))
+        // If user already edited locally (revision > 0) or has local products, skip refetch
+        if (get().revision > 0 || current.some((p) => p.id.startsWith('local-'))) {
           return
         }
 
@@ -96,33 +88,20 @@ export const useCatalogStore = create<CatalogState>()(
 
           if (error) throw error
 
-          if (data && data.length > 0) {
+          if (data && data.length > 0 && onlySeed && get().revision === 0) {
             set({
               products: (data as Product[]).map(withCategory),
               loading: false,
               hydrated: true,
             })
-          } else {
-            set({
-              products: attachCategories(SEED_PRODUCTS, SEED_CATEGORIES),
-              loading: false,
-              hydrated: true,
-            })
           }
         } catch (err) {
-          console.warn('Catalog load failed, using local catalog:', err)
-          set({
-            products:
-              get().products.length > 0
-                ? get().products.map(withCategory)
-                : attachCategories(SEED_PRODUCTS, SEED_CATEGORIES),
-            loading: false,
-            hydrated: true,
-          })
+          console.warn('Catalog load failed, keeping local catalog:', err)
         }
       },
 
-      setProducts: (products) => set({ products: products.map(withCategory) }),
+      setProducts: (products) =>
+        set({ products: products.map(withCategory), revision: Date.now() }),
 
       addProduct: async (input) => {
         const product: Product = withCategory({
@@ -167,11 +146,17 @@ export const useCatalogStore = create<CatalogState>()(
 
           if (error) throw error
           const saved = withCategory(data as Product)
-          set((s) => ({ products: [saved, ...s.products] }))
+          set((s) => ({
+            products: [saved, ...s.products],
+            revision: Date.now(),
+          }))
           return saved
         }
 
-        set((s) => ({ products: [product, ...s.products] }))
+        set((s) => ({
+          products: [product, ...s.products],
+          revision: Date.now(),
+        }))
         return product
       },
 
@@ -187,6 +172,7 @@ export const useCatalogStore = create<CatalogState>()(
           products: s.products.map((p) =>
             p.id === id ? withCategory({ ...p, ...nextPatch }) : p,
           ),
+          revision: Date.now(),
         }))
 
         if (isSupabaseConfigured && supabase && !id.startsWith('local-')) {
@@ -205,7 +191,10 @@ export const useCatalogStore = create<CatalogState>()(
       },
 
       deleteProduct: async (id) => {
-        set((s) => ({ products: s.products.filter((p) => p.id !== id) }))
+        set((s) => ({
+          products: s.products.filter((p) => p.id !== id),
+          revision: Date.now(),
+        }))
         if (isSupabaseConfigured && supabase && !id.startsWith('local-')) {
           const { error } = await supabase.from('products').delete().eq('id', id)
           if (error) throw error
@@ -219,11 +208,13 @@ export const useCatalogStore = create<CatalogState>()(
       updateOffers: (patch) =>
         set((s) => ({
           offers: { ...s.offers, ...patch },
+          revision: Date.now(),
         })),
 
       resetOffers: () =>
         set({
           offers: { ...DEFAULT_OFFERS, flashSaleEndsAt: defaultEndsAt() },
+          revision: Date.now(),
         }),
 
       getProductById: (id) => get().products.find((p) => p.id === id),

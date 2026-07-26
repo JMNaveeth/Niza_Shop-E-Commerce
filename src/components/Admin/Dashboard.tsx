@@ -186,7 +186,7 @@ export default function Dashboard() {
         await updateProduct(editingId, payload)
         setMessage(
           images
-            ? 'Saved with photos — shop grid + 360° updated'
+            ? 'Saved — live on shop instantly (open Home to see photos + 360°)'
             : 'Saved — customer shop updated instantly',
         )
       } else {
@@ -219,7 +219,7 @@ export default function Dashboard() {
       deliveryFee: Math.max(0, Number(offerDraft.deliveryFee) || 0),
       flashSaleEndsAt: new Date(offerDraft.flashSaleEndsAt).toISOString(),
     })
-    setMessage('Offers updated — live on customer pages now')
+    setMessage('Offers saved — live on customer shop instantly')
     setTab('offers')
   }
 

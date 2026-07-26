@@ -4,6 +4,7 @@ import type { Product } from '../types'
 
 export function useProducts(options?: { includeInactive?: boolean }) {
   const products = useCatalogStore((s) => s.products)
+  const revision = useCatalogStore((s) => s.revision)
   const loading = useCatalogStore((s) => s.loading)
   const hydrated = useCatalogStore((s) => s.hydrated)
   const initCatalog = useCatalogStore((s) => s.initCatalog)
@@ -13,12 +14,13 @@ export function useProducts(options?: { includeInactive?: boolean }) {
   }, [initCatalog])
 
   const list = useMemo(() => {
-    // Storefront shows all catalog items (sold-out stay visible with badge)
     if (options?.includeInactive === false) {
       return products.filter((p) => p.is_active)
     }
     return products
-  }, [products, options?.includeInactive])
+    // revision forces refresh when admin saves
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, options?.includeInactive, revision])
 
   const byId = useMemo(() => {
     const map = new Map<string, Product>()
@@ -30,6 +32,7 @@ export function useProducts(options?: { includeInactive?: boolean }) {
     products: list,
     loading: loading && !hydrated && list.length === 0,
     byId,
+    revision,
   }
 }
 

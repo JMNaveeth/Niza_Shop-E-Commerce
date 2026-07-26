@@ -120,14 +120,27 @@ export default function AdminPage() {
             ← Back to shop
           </Link>
           <h1 className="mt-2 text-xl font-bold text-gray-900 sm:text-2xl">Admin Panel</h1>
+          <p className="mt-1 text-xs text-gray-500">
+            Saves update the customer shop instantly — no refresh needed.
+          </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void handleLogout()}
-          className="min-h-11 rounded-full bg-gray-100 px-4 text-sm font-semibold text-gray-700"
-        >
-          Log out
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-bold text-white"
+          >
+            View live shop
+          </Link>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="min-h-11 rounded-full bg-gray-100 px-4 text-sm font-semibold text-gray-700"
+          >
+            Log out
+          </button>
+        </div>
       </div>
       <Dashboard />
     </div>
