@@ -29,45 +29,51 @@ export default function Home() {
   }, [products, categories, gender, categorySlug])
 
   const scrollToCatalog = () => {
-    catalogRef.current?.scrollIntoView({ behavior: 'smooth' })
+    catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
-    <div>
+    <div className="pb-mobile-nav md:pb-0">
       <HeroSection onShopNow={scrollToCatalog} />
 
-      <div ref={catalogRef} className="mx-auto max-w-6xl space-y-6 px-4 py-10">
+      <div
+        ref={catalogRef}
+        className="mx-auto max-w-6xl space-y-4 px-3 py-6 sm:space-y-6 sm:px-4 sm:py-10 scroll-mt-16"
+      >
         <FlashBanner />
 
         {offers.promoBannerEnabled && offers.promoBannerText.trim() && (
-          <div className="rounded-card bg-gold/15 px-4 py-3 text-center text-sm font-semibold text-amber-900 ring-1 ring-gold/30">
+          <div className="rounded-2xl bg-gold/15 px-3 py-3 text-center text-sm font-semibold leading-snug text-amber-900 ring-1 ring-gold/30 sm:rounded-card sm:px-4">
             {offers.promoBannerText}
           </div>
         )}
 
-        <GenderTabs
-          value={gender}
-          onChange={(g) => {
-            setGender(g)
-            setCategorySlug(null)
-          }}
-        />
-        <CategoryChips
-          categories={categories}
-          gender={gender}
-          selectedSlug={categorySlug}
-          onSelect={setCategorySlug}
-        />
-        <div className="flex items-end justify-between gap-3">
-          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
+        <div className="sticky top-14 z-20 -mx-3 space-y-3 bg-[#f8f7fb]/95 px-3 py-2 backdrop-blur-md sm:top-16 sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+          <GenderTabs
+            value={gender}
+            onChange={(g) => {
+              setGender(g)
+              setCategorySlug(null)
+            }}
+          />
+          <CategoryChips
+            categories={categories}
+            gender={gender}
+            selectedSlug={categorySlug}
+            onSelect={setCategorySlug}
+          />
+        </div>
+
+        <div className="flex items-end justify-between gap-3 pt-1">
+          <h2 className="text-lg font-bold text-gray-900 sm:text-2xl">
             {gender === 'all' ? 'All Products' : gender === 'girls' ? 'Girls' : 'Boys'}
           </h2>
-          <p className="text-sm text-gray-500">{filtered.length} items</p>
+          <p className="shrink-0 text-sm text-gray-500">{filtered.length} items</p>
         </div>
         <ProductGrid products={filtered} loading={loading} />
       </div>
 
-      <footer className="mt-8 border-t border-border bg-dark py-10 text-center text-white/70">
+      <footer className="mt-6 border-t border-border bg-dark px-4 py-8 text-center text-white/70 sm:mt-8 sm:py-10">
         <p className="text-lg font-bold text-white">
           Niza <span className="text-primary">Shop</span>
         </p>

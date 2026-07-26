@@ -113,18 +113,18 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
         <div>
-          <Link to="/" className="text-sm text-primary hover:underline">
+          <Link to="/" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary">
             ← Back to shop
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-gray-900">Admin Panel</h1>
+          <h1 className="mt-2 text-xl font-bold text-gray-900 sm:text-2xl">Admin Panel</h1>
         </div>
         <button
           type="button"
           onClick={() => void handleLogout()}
-          className="rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700"
+          className="min-h-11 rounded-full bg-gray-100 px-4 text-sm font-semibold text-gray-700"
         >
           Log out
         </button>

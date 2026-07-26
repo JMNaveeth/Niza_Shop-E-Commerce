@@ -19,14 +19,14 @@ export default function CategoryChips({
       : categories.filter((c) => c.gender === gender || c.gender === 'unisex')
 
   return (
-    <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+    <div className="scrollbar-hide -mx-3 flex gap-2 overflow-x-auto overscroll-x-contain px-3 pb-1 snap-x-mandatory sm:-mx-4 sm:px-4">
       <button
         type="button"
         onClick={() => onSelect(null)}
-        className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+        className={`snap-start shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition touch-target ${
           selectedSlug === null
             ? 'bg-dark text-white'
-            : 'bg-white text-gray-700 ring-1 ring-border hover:bg-gray-50'
+            : 'bg-white text-gray-700 ring-1 ring-border active:bg-gray-50'
         }`}
       >
         All
@@ -38,10 +38,10 @@ export default function CategoryChips({
             key={cat.id}
             type="button"
             onClick={() => onSelect(active ? null : cat.slug)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+            className={`snap-start shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition touch-target ${
               active
                 ? 'bg-dark text-white'
-                : 'bg-white text-gray-700 ring-1 ring-border hover:bg-gray-50'
+                : 'bg-white text-gray-700 ring-1 ring-border active:bg-gray-50'
             }`}
           >
             <span className="mr-1.5">{cat.icon}</span>

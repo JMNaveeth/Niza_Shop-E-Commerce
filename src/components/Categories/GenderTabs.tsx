@@ -13,8 +13,8 @@ const TABS: { label: string; value: Gender }[] = [
 
 export default function GenderTabs({ value, onChange }: GenderTabsProps) {
   return (
-    <div className="flex justify-center">
-      <div className="inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-border">
+    <div className="flex w-full justify-center">
+      <div className="grid w-full max-w-md grid-cols-3 rounded-full bg-white p-1 shadow-sm ring-1 ring-border sm:inline-flex sm:w-auto sm:max-w-none">
         {TABS.map((tab) => {
           const active = value === tab.value
           return (
@@ -22,10 +22,10 @@ export default function GenderTabs({ value, onChange }: GenderTabsProps) {
               key={tab.value}
               type="button"
               onClick={() => onChange(tab.value)}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition sm:px-7 ${
+              className={`min-h-11 rounded-full px-3 text-sm font-bold transition sm:px-7 ${
                 active
                   ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-gray-600 active:bg-gray-50'
               }`}
             >
               {tab.label}

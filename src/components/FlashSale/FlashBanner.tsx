@@ -15,8 +15,7 @@ function pad(n: number) {
 
 export default function FlashBanner() {
   const offers = useCatalogStore((s) => s.offers)
-  const deadline = new Date(offers.flashSaleEndsAt)
-  const [time, setTime] = useState(() => getRemaining(deadline))
+  const [time, setTime] = useState(() => getRemaining(new Date(offers.flashSaleEndsAt)))
 
   useEffect(() => {
     setTime(getRemaining(new Date(offers.flashSaleEndsAt)))
@@ -29,20 +28,22 @@ export default function FlashBanner() {
   if (!offers.flashSaleEnabled || time.expired) return null
 
   return (
-    <div className="overflow-hidden rounded-card bg-gradient-to-r from-primary via-[#c026a0] to-purple px-4 py-3 text-white shadow-md">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-lg" aria-hidden>
+    <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-[#c026a0] to-purple px-3 py-3 text-white shadow-md sm:rounded-card sm:px-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-start gap-2">
+          <span className="text-lg leading-none" aria-hidden>
             ⚡
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold uppercase tracking-wide">
               {offers.flashSaleTitle}
             </p>
-            <p className="text-xs text-white/85">{offers.flashSaleSubtitle}</p>
+            <p className="mt-0.5 text-xs leading-snug text-white/90 line-clamp-2">
+              {offers.flashSaleSubtitle}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 font-mono text-sm font-bold sm:text-base">
+        <div className="flex items-center justify-center gap-1.5 self-center font-mono text-sm font-bold sm:self-auto sm:text-base">
           {[
             { label: 'H', value: time.hours },
             { label: 'M', value: time.minutes },
@@ -50,7 +51,7 @@ export default function FlashBanner() {
           ].map((unit, i) => (
             <div key={unit.label} className="flex items-center gap-1.5">
               {i > 0 && <span className="opacity-70">:</span>}
-              <div className="min-w-[3rem] rounded-lg bg-black/25 px-2.5 py-1.5 text-center">
+              <div className="min-w-[2.75rem] rounded-lg bg-black/25 px-2 py-1.5 text-center sm:min-w-[3rem] sm:px-2.5">
                 <div>{pad(unit.value)}</div>
                 <div className="text-[10px] font-medium uppercase tracking-wider opacity-80">
                   {unit.label}

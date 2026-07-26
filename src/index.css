@@ -7,10 +7,17 @@
   --color-dark: #0f0f1a;
   --color-purple: #7c3aed;
   --color-gold: #f59e0b;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --bottom-nav-h: 64px;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -19,6 +26,35 @@ body {
   background-color: #f8f7fb;
   color: #111827;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  /* Avoid accidental horizontal rubber-banding on mobile */
+  overscroll-behavior-x: none;
+}
+
+/* Prevent iOS zoom on input focus (requires >= 16px) */
+input,
+textarea,
+select,
+button {
+  font-size: 16px;
+}
+
+button,
+a,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+img,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+#root {
+  min-height: 100dvh;
+  min-height: 100vh;
 }
 
 @layer utilities {
@@ -28,5 +64,41 @@ body {
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .safe-px {
+    padding-left: max(1rem, var(--safe-left));
+    padding-right: max(1rem, var(--safe-right));
+  }
+
+  .safe-pb {
+    padding-bottom: max(0.75rem, var(--safe-bottom));
+  }
+
+  .safe-pt {
+    padding-top: var(--safe-top);
+  }
+
+  .pb-mobile-nav {
+    padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 0.5rem);
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+  }
+
+  .snap-start {
+    scroll-snap-align: start;
+  }
+}
+
+@media (hover: none) {
+  .group:hover {
+    transform: none !important;
   }
 }

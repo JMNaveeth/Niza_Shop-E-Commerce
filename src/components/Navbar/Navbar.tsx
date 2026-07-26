@@ -6,28 +6,28 @@ export default function Navbar() {
   const openCart = useCartStore((s) => s.openCart)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-dark/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl" aria-hidden>
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-dark/95 backdrop-blur-md safe-pt">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between safe-px sm:h-16">
+        <Link to="/" className="flex min-h-11 items-center gap-1.5 active:opacity-80">
+          <span className="text-xl sm:text-2xl" aria-hidden>
             🛍️
           </span>
-          <span className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+          <span className="text-lg font-bold tracking-tight text-white sm:text-2xl">
             Niza <span className="text-primary">Shop</span>
           </span>
         </Link>
 
-        <nav className="flex items-center gap-3">
+        <nav className="flex items-center gap-1 sm:gap-3">
           <Link
             to="/admin"
-            className="text-sm font-medium text-white/70 transition hover:text-white"
+            className="hidden min-h-11 items-center px-2 text-sm font-medium text-white/70 transition hover:text-white sm:inline-flex"
           >
             Admin
           </Link>
           <button
             type="button"
             onClick={openCart}
-            className="relative rounded-full bg-white/10 p-2.5 text-white transition hover:bg-white/20"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition active:bg-white/25 sm:hover:bg-white/20"
             aria-label={`Open cart, ${itemCount} items`}
           >
             <svg
@@ -44,8 +44,8 @@ export default function Navbar() {
               <path d="M6 6L5 3H2" />
             </svg>
             {itemCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-white">
-                {itemCount}
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-white">
+                {itemCount > 99 ? '99+' : itemCount}
               </span>
             )}
           </button>

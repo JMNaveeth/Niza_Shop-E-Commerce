@@ -35,5 +35,9 @@ export default function ProductDetailPage() {
     )
   }
 
-  return <ProductDetail product={product} related={related} />
+  return (
+    <div className="pb-mobile-nav md:pb-0">
+      <ProductDetail product={product} related={related} />
+    </div>
+  )
 }

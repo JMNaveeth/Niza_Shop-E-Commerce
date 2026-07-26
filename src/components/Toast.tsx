@@ -5,8 +5,8 @@ export default function Toast() {
   if (!toast) return null
 
   return (
-    <div className="pointer-events-none fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 animate-toast-in">
-      <div className="rounded-full bg-dark px-5 py-3 text-sm font-medium text-white shadow-xl">
+    <div className="pointer-events-none fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] left-1/2 z-[60] w-[min(92vw,24rem)] -translate-x-1/2 animate-toast-in px-3 md:bottom-6">
+      <div className="rounded-full bg-dark px-4 py-3 text-center text-sm font-medium text-white shadow-xl">
         {toast}
       </div>
     </div>
