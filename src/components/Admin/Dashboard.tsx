@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Order, Product, ProductBadge } from '../../types'
-import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 import { SEED_CATEGORIES } from '../../data/seed'
 import { useCatalogStore } from '../../store/catalogStore'
 import { formatLkr } from '../Cart/WhatsAppOrder'
+import { fileToProductImageDataUrl } from '../../lib/imageUpload'
+import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 
 type Tab = 'products' | 'offers' | 'orders' | 'revenue'
 
@@ -23,6 +24,7 @@ const EMPTY_FORM = {
   is_flash_sale: false,
   badge: '' as string,
   imageFile: null as File | null,
+  imageFiles: [] as File[],
 }
 
 function toDatetimeLocal(iso: string): string {
@@ -104,13 +106,22 @@ export default function Dashboard() {
       is_flash_sale: p.is_flash_sale,
       badge: p.badge ?? '',
       imageFile: null,
+      imageFiles: [],
     })
     setTab('products')
     setMessage(null)
   }
 
   const uploadImage = async (file: File): Promise<string | null> => {
-    if (!supabase) return null
+    // Local / demo: store compressed data URL so cards + 360° work without Supabase
+    if (!isSupabaseConfigured || !supabase) {
+      try {
+        return await fileToProductImageDataUrl(file)
+      } catch {
+        setMessage('Could not read that image file')
+        return null
+      }
+    }
     const ext = file.name.split('.').pop() ?? 'jpg'
     const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
     const { error } = await supabase.storage.from('product-images').upload(path, file)
@@ -136,10 +147,21 @@ export default function Dashboard() {
       .map((s) => s.trim())
       .filter(Boolean)
 
+    const files =
+      form.imageFiles.length > 0
+        ? form.imageFiles
+        : form.imageFile
+          ? [form.imageFile]
+          : []
+
     let images: string[] | undefined
-    if (form.imageFile) {
-      const url = await uploadImage(form.imageFile)
-      if (url) images = [url]
+    if (files.length > 0) {
+      const uploaded: string[] = []
+      for (const file of files.slice(0, 4)) {
+        const url = await uploadImage(file)
+        if (url) uploaded.push(url)
+      }
+      if (uploaded.length) images = uploaded
     }
 
     const payload = {
@@ -162,10 +184,14 @@ export default function Dashboard() {
     try {
       if (editingId) {
         await updateProduct(editingId, payload)
-        setMessage('Saved — customer shop updated instantly')
+        setMessage(
+          images
+            ? 'Saved with photos — shop grid + 360° updated'
+            : 'Saved — customer shop updated instantly',
+        )
       } else {
         await addProduct({ ...payload, images: images ?? [] })
-        setMessage('Product added — now live on the shop')
+        setMessage('Product added — photos show on shop & in 360° view')
       }
       resetForm()
     } catch (err) {
@@ -586,14 +612,51 @@ export default function Dashboard() {
               <option value="Trending">Trending</option>
               <option value="Premium">Premium</option>
             </select>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                setForm({ ...form, imageFile: e.target.files?.[0] ?? null })
-              }
-              className="w-full text-sm"
-            />
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-gray-700">
+                Product photos (for shop + 360°)
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const list = Array.from(e.target.files ?? [])
+                  setForm({
+                    ...form,
+                    imageFiles: list,
+                    imageFile: list[0] ?? null,
+                  })
+                }}
+                className="w-full text-sm"
+              />
+              <span className="mt-1 block text-xs text-gray-500">
+                Upload 1–4 angles (front/side/back). Photos replace emoji cartoons on the shop
+                and power the 360° viewer.
+              </span>
+              {form.imageFiles.length > 0 && (
+                <span className="mt-1 block text-xs font-semibold text-primary">
+                  {form.imageFiles.length} photo{form.imageFiles.length > 1 ? 's' : ''} selected
+                </span>
+              )}
+              {editingId &&
+                products.find((p) => p.id === editingId)?.images?.[0] &&
+                form.imageFiles.length === 0 && (
+                  <div className="mt-2 flex gap-2 overflow-x-auto">
+                    {products
+                      .find((p) => p.id === editingId)!
+                      .images.slice(0, 4)
+                      .map((src, i) => (
+                        <img
+                          key={i}
+                          src={src}
+                          alt=""
+                          className="h-14 w-14 rounded-lg object-cover ring-1 ring-border"
+                        />
+                      ))}
+                  </div>
+                )}
+            </label>
             <div className="flex flex-wrap gap-4 text-sm">
               <label className="flex items-center gap-2">
                 <input

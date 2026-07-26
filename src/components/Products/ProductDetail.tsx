@@ -17,12 +17,20 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
   const openCart = useCartStore((s) => s.openCart)
   const [color, setColor] = useState(product.colors[0] ?? '#e91e8c')
   const [size, setSize] = useState(product.sizes?.[0] ?? '')
-  const [show3d, setShow3d] = useState(false)
+  const [activeImage, setActiveImage] = useState(0)
+  const [mode, setMode] = useState<'photo' | '360'>('photo')
+
+  const photos = useMemo(
+    () => (product.images ?? []).filter(Boolean),
+    [product.images],
+  )
+  const hasPhotos = photos.length > 0
 
   useEffect(() => {
     setColor(product.colors[0] ?? '#e91e8c')
     setSize(product.sizes?.[0] ?? '')
-    setShow3d(false)
+    setActiveImage(0)
+    setMode('photo')
   }, [product.id, product.colors, product.sizes])
 
   const soldOut = !product.is_active || product.stock_qty <= 0
@@ -49,44 +57,84 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
 
       <div className="mt-3 grid gap-5 sm:mt-6 sm:gap-8 lg:grid-cols-2">
         <div className="space-y-3 sm:space-y-4">
-          <div className="flex aspect-square items-center justify-center rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50 text-7xl ring-1 ring-border sm:rounded-card sm:text-9xl">
-            {product.images[0] ? (
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className="h-full w-full rounded-2xl object-cover sm:rounded-card"
-              />
-            ) : (
-              product.emoji
-            )}
-          </div>
-
-          {!show3d ? (
-            <button
-              type="button"
-              onClick={() => setShow3d(true)}
-              className="flex min-h-11 w-full items-center justify-center rounded-2xl bg-dark text-sm font-semibold text-white ring-1 ring-border active:opacity-90"
-            >
-              View 360° preview
-            </button>
-          ) : (
-            <>
-              <div className="h-48 overflow-hidden rounded-2xl bg-dark ring-1 ring-border sm:h-64 sm:rounded-card">
+          <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50 ring-1 ring-border sm:rounded-card">
+            {mode === '360' ? (
+              <div className="aspect-square sm:h-80">
                 <Suspense
                   fallback={
-                    <div className="flex h-full items-center justify-center text-sm text-white/60">
-                      Loading viewer…
+                    <div className="flex h-full items-center justify-center bg-[#14121f] text-sm text-white/60">
+                      Loading 360° viewer…
                     </div>
                   }
                 >
-                  <ProductViewer3D color={color === 'transparent' ? '#e5e7eb' : color} />
+                  <ProductViewer3D
+                    color={color === 'transparent' ? '#e5e7eb' : color}
+                    images={photos}
+                    autoSpin
+                  />
                 </Suspense>
               </div>
-              <p className="text-center text-xs text-gray-500">
-                Drag or swipe to rotate · 360° preview
-              </p>
-            </>
+            ) : (
+              <div className="flex aspect-square items-center justify-center text-7xl sm:text-9xl">
+                {hasPhotos ? (
+                  <img
+                    src={photos[activeImage] ?? photos[0]}
+                    alt={product.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{product.emoji}</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {hasPhotos && photos.length > 1 && mode === 'photo' && (
+            <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
+              {photos.map((src, i) => (
+                <button
+                  key={`${src.slice(0, 32)}-${i}`}
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-2 transition ${
+                    activeImage === i ? 'ring-primary' : 'ring-transparent'
+                  }`}
+                >
+                  <img src={src} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMode('photo')}
+              className={`min-h-11 rounded-xl text-sm font-semibold ring-1 transition ${
+                mode === 'photo'
+                  ? 'bg-dark text-white ring-dark'
+                  : 'bg-white text-gray-700 ring-border'
+              }`}
+            >
+              Photo
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('360')}
+              className={`min-h-11 rounded-xl text-sm font-semibold ring-1 transition ${
+                mode === '360'
+                  ? 'bg-primary text-white ring-primary'
+                  : 'bg-white text-gray-700 ring-border'
+              }`}
+            >
+              360° View
+            </button>
+          </div>
+          <p className="text-center text-xs text-gray-500">
+            {hasPhotos
+              ? '360° wraps your photos on a 3D cube — drag to spin, pinch to zoom.'
+              : 'Upload product photos in Admin to replace emojis and unlock photo 360°.'}
+          </p>
         </div>
 
         <div>
@@ -170,7 +218,6 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
             </div>
           )}
 
-          {/* Desktop CTA */}
           <button
             type="button"
             disabled={soldOut}
@@ -200,7 +247,6 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
         </section>
       )}
 
-      {/* Sticky mobile Add to Cart — sits above bottom nav */}
       <div
         className="fixed inset-x-0 z-30 border-t border-border bg-white/95 px-3 py-2.5 backdrop-blur-md sm:hidden"
         style={{ bottom: 'calc(4rem + var(--safe-bottom))' }}
