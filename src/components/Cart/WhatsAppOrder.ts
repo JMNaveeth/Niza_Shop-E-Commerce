@@ -2,6 +2,7 @@ import type { CartItem } from '../../types'
 import { DELIVERY_FEE } from '../../types'
 import { supabase, isSupabaseConfigured } from '../../lib/supabase'
 import { useCatalogStore } from '../../store/catalogStore'
+import { getEffectivePrice } from '../../lib/pricing'
 
 export function formatLkr(amount: number): string {
   return `Rs. ${amount.toLocaleString('en-LK')}`
@@ -9,6 +10,10 @@ export function formatLkr(amount: number): string {
 
 function getDeliveryFee(): number {
   return useCatalogStore.getState().getDeliveryFee() || DELIVERY_FEE
+}
+
+function linePrice(item: CartItem): number {
+  return getEffectivePrice(item.product, useCatalogStore.getState().offers)
 }
 
 export function buildWhatsAppMessage(
@@ -20,7 +25,7 @@ export function buildWhatsAppMessage(
   const grandTotal = subtotal + delivery
 
   const lines = items.map((item, index) => {
-    const lineTotal = item.product.price * item.quantity
+    const lineTotal = linePrice(item) * item.quantity
     return `${index + 1}. ${item.product.emoji} ${item.product.name} (x${item.quantity}) — ${formatLkr(lineTotal)}`
   })
 
@@ -59,7 +64,7 @@ export async function saveOrderToSupabase(
     name: i.product.name,
     emoji: i.product.emoji,
     quantity: i.quantity,
-    price: i.product.price,
+    price: linePrice(i),
     color: i.selectedColor,
     size: i.selectedSize,
   }))

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useCartStore } from '../../store/cartStore'
 import { useCatalogStore } from '../../store/catalogStore'
+import { getEffectivePrice } from '../../lib/pricing'
+import { useFlashSaleStatus } from '../../hooks/useFlashSale'
 import {
   formatLkr,
   openWhatsAppOrder,
@@ -18,6 +20,8 @@ export default function CartDrawer() {
     clearCart,
   } = useCartStore()
   const deliveryFee = useCatalogStore((s) => s.offers.deliveryFee)
+  const offers = useCatalogStore((s) => s.offers)
+  useFlashSaleStatus() // re-render when flash timer ends so prices update
   const [customerName, setCustomerName] = useState('')
   const [ordering, setOrdering] = useState(false)
 
@@ -178,7 +182,7 @@ export default function CartDrawer() {
                         </button>
                       </div>
                       <span className="text-sm font-bold text-primary">
-                        {formatLkr(item.product.price * item.quantity)}
+                        {formatLkr(getEffectivePrice(item.product, offers) * item.quantity)}
                       </span>
                     </div>
                   </div>

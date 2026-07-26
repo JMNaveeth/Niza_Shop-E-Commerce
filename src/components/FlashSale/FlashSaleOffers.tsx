@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types'
 import { useCartStore } from '../../store/cartStore'
+import { useFlashSaleStatus } from '../../hooks/useFlashSale'
 import { formatLkr } from '../Cart/WhatsAppOrder'
 
 interface FlashSaleOffersProps {
@@ -9,16 +10,11 @@ interface FlashSaleOffersProps {
 
 export default function FlashSaleOffers({ products }: FlashSaleOffersProps) {
   const addItem = useCartStore((s) => s.addItem)
+  const { getPrice, getCompareAt, getDiscount, live } = useFlashSaleStatus()
 
-  if (products.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-5 text-center">
-        <p className="text-sm font-semibold text-gray-800">No flash deals yet</p>
-        <p className="mt-1 text-xs text-gray-500">
-          Mark products as Flash Sale in Admin to show them here.
-        </p>
-      </div>
-    )
+  // When timer ends, flash offers section is hidden by parent — keep null-safe
+  if (!live || products.length === 0) {
+    return null
   }
 
   return (
@@ -27,7 +23,7 @@ export default function FlashSaleOffers({ products }: FlashSaleOffersProps) {
         <div>
           <h2 className="text-lg font-bold text-gray-900 sm:text-xl">🔥 Flash Offers</h2>
           <p className="text-xs text-gray-500 sm:text-sm">
-            Limited-time deals — tap to buy before the timer ends
+            Limited-time deals — when the timer ends, prices return to normal automatically
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
@@ -35,16 +31,12 @@ export default function FlashSaleOffers({ products }: FlashSaleOffersProps) {
         </span>
       </div>
 
-      {/* Mobile: horizontal snap scroll · Desktop: grid */}
       <div className="scrollbar-hide -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 snap-x-mandatory sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 md:grid-cols-4">
         {products.map((product) => {
           const soldOut = !product.is_active || product.stock_qty <= 0
-          const discount =
-            product.original_price > product.price
-              ? Math.round(
-                  ((product.original_price - product.price) / product.original_price) * 100,
-                )
-              : 0
+          const selling = getPrice(product)
+          const compareAt = getCompareAt(product)
+          const discount = getDiscount(product)
 
           return (
             <article
@@ -90,11 +82,11 @@ export default function FlashSaleOffers({ products }: FlashSaleOffersProps) {
                 </Link>
                 <div className="mt-1 flex flex-wrap items-baseline gap-1.5">
                   <span className="text-base font-bold text-primary">
-                    {formatLkr(product.price)}
+                    {formatLkr(selling)}
                   </span>
-                  {product.original_price > product.price && (
+                  {compareAt != null && (
                     <span className="text-xs text-gray-400 line-through">
-                      {formatLkr(product.original_price)}
+                      {formatLkr(compareAt)}
                     </span>
                   )}
                 </div>

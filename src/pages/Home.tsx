@@ -8,12 +8,14 @@ import ProductGrid from '../components/Products/ProductGrid'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
 import { useCatalogStore } from '../store/catalogStore'
+import { useFlashSaleStatus } from '../hooks/useFlashSale'
 import type { Gender } from '../types'
 
 export default function Home() {
   const { products, loading } = useProducts()
   const { categories } = useCategories()
   const offers = useCatalogStore((s) => s.offers)
+  const { live: flashLive } = useFlashSaleStatus()
   const [gender, setGender] = useState<Gender>('all')
   const [categorySlug, setCategorySlug] = useState<string | null>(null)
   const catalogRef = useRef<HTMLDivElement>(null)
@@ -38,7 +40,7 @@ export default function Home() {
     catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const showFlashSection = offers.flashSaleEnabled
+  const showFlashSection = flashLive && offers.flashSaleEnabled
 
   return (
     <div className="pb-mobile-nav md:pb-0">

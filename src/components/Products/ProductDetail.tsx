@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types'
 import { useCartStore } from '../../store/cartStore'
+import { useFlashSaleStatus } from '../../hooks/useFlashSale'
 import { formatLkr } from '../Cart/WhatsAppOrder'
 import ProductCard from './ProductCard'
 
@@ -15,6 +16,7 @@ interface ProductDetailProps {
 export default function ProductDetail({ product, related }: ProductDetailProps) {
   const addItem = useCartStore((s) => s.addItem)
   const openCart = useCartStore((s) => s.openCart)
+  const { getPrice, getCompareAt, getDiscount } = useFlashSaleStatus()
   const [color, setColor] = useState(product.colors[0] ?? '#e91e8c')
   const [size, setSize] = useState(product.sizes?.[0] ?? '')
   const [activeImage, setActiveImage] = useState(0)
@@ -34,12 +36,9 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
   }, [product.id, product.colors, product.sizes])
 
   const soldOut = !product.is_active || product.stock_qty <= 0
-  const discount = useMemo(() => {
-    if (product.original_price <= product.price) return 0
-    return Math.round(
-      ((product.original_price - product.price) / product.original_price) * 100,
-    )
-  }, [product])
+  const selling = getPrice(product)
+  const compareAt = getCompareAt(product)
+  const discount = getDiscount(product)
 
   const handleAdd = () => {
     addItem(product, { color, size: size || undefined })
@@ -160,12 +159,12 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
 
           <div className="mt-3 flex flex-wrap items-baseline gap-2 sm:mt-4 sm:gap-3">
             <span className="text-2xl font-bold text-primary sm:text-3xl">
-              {formatLkr(product.price)}
+              {formatLkr(selling)}
             </span>
-            {product.original_price > product.price && (
+            {compareAt != null && (
               <>
                 <span className="text-base text-gray-400 line-through sm:text-lg">
-                  {formatLkr(product.original_price)}
+                  {formatLkr(compareAt)}
                 </span>
                 <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-sm font-semibold text-emerald-700">
                   {discount}% OFF
@@ -255,7 +254,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
         <div className="mx-auto flex max-w-lg items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-gray-900">{product.name}</p>
-            <p className="text-base font-bold text-primary">{formatLkr(product.price)}</p>
+            <p className="text-base font-bold text-primary">{formatLkr(selling)}</p>
           </div>
           <button
             type="button"

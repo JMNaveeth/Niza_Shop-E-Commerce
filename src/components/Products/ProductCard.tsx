@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types'
 import { useCartStore } from '../../store/cartStore'
+import { useFlashSaleStatus } from '../../hooks/useFlashSale'
 import { formatLkr } from '../Cart/WhatsAppOrder'
 
 interface ProductCardProps {
@@ -17,11 +18,12 @@ const BADGE_STYLES: Record<string, string> = {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem)
+  const { getPrice, getCompareAt, getDiscount, live } = useFlashSaleStatus()
   const soldOut = !product.is_active || product.stock_qty <= 0
-  const discount =
-    product.original_price > product.price
-      ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
-      : 0
+  const selling = getPrice(product)
+  const compareAt = getCompareAt(product)
+  const discount = getDiscount(product)
+  const showFlashBadge = product.is_flash_sale && live && !soldOut
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-border transition duration-300 sm:rounded-card sm:hover:-translate-y-1 sm:hover:shadow-lg">
@@ -57,7 +59,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </span>
         )}
 
-        {product.is_flash_sale && !soldOut && (
+        {showFlashBadge && (
           <span className="absolute bottom-1.5 left-1.5 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
             Flash
           </span>
@@ -73,12 +75,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
           <span className="text-[15px] font-bold text-primary sm:text-lg">
-            {formatLkr(product.price)}
+            {formatLkr(selling)}
           </span>
-          {product.original_price > product.price && (
+          {compareAt != null && (
             <>
               <span className="text-[11px] text-gray-400 line-through sm:text-sm">
-                {formatLkr(product.original_price)}
+                {formatLkr(compareAt)}
               </span>
               {discount > 0 && (
                 <span className="text-[11px] font-semibold text-emerald-600 sm:text-xs">
