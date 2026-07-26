@@ -31,13 +31,13 @@ export default function HeroSection({ onShopNow }: HeroSectionProps) {
 
       <div className="relative z-10 mx-auto flex min-h-[58vh] max-w-6xl flex-col items-center justify-center px-4 py-12 text-center sm:min-h-[70vh] sm:py-20">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/95 sm:mb-3 sm:text-sm">
-          From Pettah to Kinniya
+          From Pettah to You
         </p>
         <h1 className="max-w-3xl text-[1.85rem] font-extrabold leading-tight text-white sm:text-5xl md:text-6xl">
           Shop the Latest Styles
         </h1>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-white/80 sm:mt-4 sm:max-w-xl sm:text-lg">
-          Fashion for Girls & Boys. Order on WhatsApp — delivered to Kinniya.
+          Fashion for Girls & Boys. Order on WhatsApp — we deliver island-wide.
         </p>
         <button
           type="button"

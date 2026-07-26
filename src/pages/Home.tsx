@@ -77,7 +77,7 @@ export default function Home() {
         <p className="text-lg font-bold text-white">
           Niza <span className="text-primary">Shop</span>
         </p>
-        <p className="mt-2 text-sm">Pettah wholesale styles · Delivered to Kinniya</p>
+        <p className="mt-2 text-sm">Pettah wholesale styles · Island-wide delivery</p>
         <p className="mt-1 text-xs">
           Delivery fee: Rs. {offers.deliveryFee.toLocaleString('en-LK')} · Orders via WhatsApp
         </p>

@@ -60,7 +60,7 @@ export const SEED_PRODUCTS: Product[] = [
     images: [],
     emoji: '🩴',
     description:
-      'Comfortable fashion slippers for ladies. Soft sole, trendy design — ideal for Kinniya weather and casual outings.',
+      'Comfortable fashion slippers for ladies. Soft sole, trendy design — ideal for everyday wear and casual outings.',
     colors: ['#f59e0b', '#e91e8c', '#ffffff'],
     sizes: ['36', '37', '38', '39', '40'],
     stock_qty: 15,

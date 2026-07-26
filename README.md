@@ -1,7 +1,7 @@
 # Niza Shop
 
 **Sri Lankan fashion resale e-commerce** for Girls & Boys.  
-Products sourced from **Pettah wholesale market (Colombo)** and sold to customers in **Kinniya** via **WhatsApp orders**.
+Products sourced from **Pettah wholesale market (Colombo)** and sold island-wide via **WhatsApp orders**.
 
 **Live target:** [niza-shop.vercel.app](https://niza-shop.vercel.app)
 
