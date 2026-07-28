@@ -4,12 +4,21 @@ import { useCatalogStore } from '../../store/catalogStore'
 import { getEffectivePrice } from '../../lib/pricing'
 import { useFlashSaleStatus } from '../../hooks/useFlashSale'
 import {
+  createDeliveryLocation,
+  geolocationErrorMessage,
+  getAccuratePosition,
+  isLowAccuracy,
+  reverseGeocode,
+  type DeliveryLocation,
+} from '../../lib/deliveryLocation'
+import {
   formatLkr,
   formatPhoneDisplay,
   isValidSriLankaMobile,
   openWhatsAppOrder,
   saveOrderToSupabase,
 } from './WhatsAppOrder'
+import LocationPickerModal from './LocationPickerModal'
 
 export default function CartDrawer() {
   const {
@@ -26,11 +35,13 @@ export default function CartDrawer() {
   useFlashSaleStatus()
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
-  const [customerAddress, setCustomerAddress] = useState('')
+  const [location, setLocation] = useState<DeliveryLocation | null>(null)
+  const [locating, setLocating] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [touched, setTouched] = useState({
     name: false,
     phone: false,
-    address: false,
+    location: false,
   })
   const [ordering, setOrdering] = useState(false)
 
@@ -39,8 +50,8 @@ export default function CartDrawer() {
 
   const nameOk = customerName.trim().length >= 2
   const phoneOk = isValidSriLankaMobile(customerPhone)
-  const addressOk = customerAddress.trim().length >= 8
-  const formReady = nameOk && phoneOk && addressOk
+  const locationOk = location != null
+  const formReady = nameOk && phoneOk && locationOk
 
   const nameError =
     touched.name && !nameOk ? 'Please enter your full name' : null
@@ -50,9 +61,9 @@ export default function CartDrawer() {
       : touched.phone && !customerPhone.trim()
         ? 'Contact number is required'
         : null
-  const addressError =
-    touched.address && !addressOk
-      ? 'Enter your delivery address (city / area)'
+  const locationError =
+    touched.location && !locationOk
+      ? 'Share or define your delivery location'
       : null
 
   useEffect(() => {
@@ -71,8 +82,42 @@ export default function CartDrawer() {
     setCustomerPhone(cleaned)
   }
 
+  const shareCurrentLocation = async () => {
+    setLocating(true)
+    setTouched((t) => ({ ...t, location: true }))
+    try {
+      const pos = await getAccuratePosition({
+        targetAccuracy: 35,
+        timeoutMs: 18000,
+      })
+      const label =
+        (await reverseGeocode(pos.lat, pos.lng)) || 'My GPS location'
+      const loc = createDeliveryLocation(
+        pos.lat,
+        pos.lng,
+        'current',
+        label,
+        pos.accuracyMeters,
+      )
+      setLocation(loc)
+
+      if (isLowAccuracy(pos.accuracyMeters)) {
+        useCartStore
+          .getState()
+          .showToast('GPS is approximate — please Adjust pin to confirm')
+        setPickerOpen(true)
+      } else {
+        useCartStore.getState().showToast('Precise location shared ✓')
+      }
+    } catch (err) {
+      useCartStore.getState().showToast(geolocationErrorMessage(err))
+    } finally {
+      setLocating(false)
+    }
+  }
+
   const handleOrder = async () => {
-    setTouched({ name: true, phone: true, address: true })
+    setTouched({ name: true, phone: true, location: true })
 
     if (!nameOk) {
       useCartStore.getState().showToast('Please enter your name')
@@ -84,8 +129,10 @@ export default function CartDrawer() {
         .showToast('Enter a valid contact number (07X XXX XXXX)')
       return
     }
-    if (!addressOk) {
-      useCartStore.getState().showToast('Please enter your delivery address')
+    if (!location) {
+      useCartStore
+        .getState()
+        .showToast('Share or define your delivery location')
       return
     }
     if (items.length === 0) return
@@ -93,7 +140,7 @@ export default function CartDrawer() {
     const customer = {
       name: customerName.trim(),
       phone: formatPhoneDisplay(customerPhone).trim() || customerPhone.trim(),
-      address: customerAddress.trim(),
+      location,
     }
 
     setOrdering(true)
@@ -103,8 +150,8 @@ export default function CartDrawer() {
       clearCart()
       setCustomerName('')
       setCustomerPhone('')
-      setCustomerAddress('')
-      setTouched({ name: false, phone: false, address: false })
+      setLocation(null)
+      setTouched({ name: false, phone: false, location: false })
       closeCart()
       useCartStore.getState().showToast('Order opened in WhatsApp!')
     } catch {
@@ -260,7 +307,6 @@ export default function CartDrawer() {
                 ))}
               </ul>
 
-              {/* Delivery details — scrolls with items on small screens */}
               <div className="space-y-2.5 rounded-2xl bg-gradient-to-br from-white to-pink-50/40 p-3.5 shadow-sm ring-1 ring-border">
                 <div className="flex items-center gap-2.5">
                   <span
@@ -274,7 +320,7 @@ export default function CartDrawer() {
                       Delivery details
                     </p>
                     <p className="text-[11px] leading-snug text-gray-500">
-                      Fill these to place your WhatsApp order
+                      Name, phone & location for WhatsApp order
                     </p>
                   </div>
                 </div>
@@ -325,7 +371,7 @@ export default function CartDrawer() {
                       }}
                       placeholder="07X XXX XXXX"
                       autoComplete="tel"
-                      enterKeyHint="next"
+                      enterKeyHint="done"
                       maxLength={16}
                       aria-invalid={!!phoneError}
                       className={`${fieldClass(!!phoneError, phoneOk && !!customerPhone)} pl-10 pr-9`}
@@ -350,37 +396,132 @@ export default function CartDrawer() {
                   )}
                 </label>
 
-                <label className="block">
-                  <span className="mb-1 flex items-center gap-1 text-xs font-semibold text-gray-600">
-                    Delivery address <span className="text-primary">*</span>
+                {/* Location — no typed address */}
+                <div className="block">
+                  <span className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-gray-600">
+                    Delivery location <span className="text-primary">*</span>
                   </span>
-                  <div className="relative">
-                    <span
-                      className="pointer-events-none absolute left-3 top-3 text-sm text-gray-400"
-                      aria-hidden
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={locating}
+                      onClick={() => void shareCurrentLocation()}
+                      className={`flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-3 text-center transition active:scale-[0.98] ${
+                        location?.source === 'current'
+                          ? 'bg-emerald-50 ring-2 ring-emerald-500'
+                          : 'bg-white ring-1 ring-border active:bg-gray-50'
+                      }`}
                     >
-                      📍
-                    </span>
-                    <textarea
-                      value={customerAddress}
-                      onChange={(e) => setCustomerAddress(e.target.value)}
-                      onBlur={() =>
-                        setTouched((t) => ({ ...t, address: true }))
-                      }
-                      placeholder="Street, city / town, district"
-                      autoComplete="street-address"
-                      rows={2}
-                      enterKeyHint="done"
-                      aria-invalid={!!addressError}
-                      className={`${fieldClass(!!addressError, addressOk)} resize-none pl-10 leading-snug`}
-                    />
+                      <span className="text-xl" aria-hidden>
+                        {locating ? '⏳' : '📡'}
+                      </span>
+                      <span className="text-[12px] font-bold leading-tight text-gray-900">
+                        {locating ? 'Getting GPS…' : 'Share current'}
+                      </span>
+                      <span className="text-[10px] leading-tight text-gray-500">
+                        {locating ? 'Wait for accuracy' : 'Phone GPS best'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTouched((t) => ({ ...t, location: true }))
+                        setPickerOpen(true)
+                      }}
+                      className={`flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-3 text-center transition active:scale-[0.98] ${
+                        location?.source === 'picked'
+                          ? 'bg-emerald-50 ring-2 ring-emerald-500'
+                          : 'bg-white ring-1 ring-border active:bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-xl" aria-hidden>
+                        🗺️
+                      </span>
+                      <span className="text-[12px] font-bold leading-tight text-gray-900">
+                        Define location
+                      </span>
+                      <span className="text-[10px] leading-tight text-gray-500">
+                        Search / pin map
+                      </span>
+                    </button>
                   </div>
-                  {addressError && (
-                    <p className="mt-1 text-[11px] font-medium text-red-500">
-                      {addressError}
+
+                  {location && (
+                    <div
+                      className={`mt-2 rounded-xl px-3 py-2.5 ring-1 ${
+                        isLowAccuracy(location.accuracyMeters)
+                          ? 'bg-amber-50 ring-amber-200'
+                          : 'bg-emerald-50/80 ring-emerald-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p
+                            className={`text-[10px] font-bold uppercase tracking-wide ${
+                              isLowAccuracy(location.accuracyMeters)
+                                ? 'text-amber-700'
+                                : 'text-emerald-700'
+                            }`}
+                          >
+                            {location.source === 'current'
+                              ? 'GPS pin'
+                              : 'Pinned location'}{' '}
+                            ✓
+                            {location.accuracyMeters != null && (
+                              <span className="ml-1 font-semibold normal-case tracking-normal">
+                                · ±{Math.round(location.accuracyMeters)}m
+                              </span>
+                            )}
+                          </p>
+                          <p className="mt-0.5 text-sm font-semibold leading-snug text-gray-900">
+                            {location.label}
+                          </p>
+                          <p className="mt-0.5 text-[10px] tabular-nums text-gray-500">
+                            {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                          </p>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <a
+                              href={location.mapsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-bold text-primary underline-offset-2 active:underline"
+                            >
+                              Verify in Google Maps
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setPickerOpen(true)}
+                              className="text-[11px] font-bold text-dark underline-offset-2 active:underline"
+                            >
+                              Wrong? Adjust pin
+                            </button>
+                          </div>
+                          {isLowAccuracy(location.accuracyMeters) && (
+                            <p className="mt-1.5 text-[11px] font-medium leading-snug text-amber-800">
+                              Accuracy is low (common on PC / Wi‑Fi). Use your
+                              phone with GPS, or tap Adjust pin.
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setLocation(null)}
+                          className="shrink-0 text-[11px] font-semibold text-red-500"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {locationError && (
+                    <p className="mt-1.5 text-[11px] font-medium text-red-500">
+                      {locationError}
                     </p>
                   )}
-                </label>
+                </div>
               </div>
             </div>
           )}
@@ -417,6 +558,16 @@ export default function CartDrawer() {
           </button>
         </div>
       </aside>
+
+      <LocationPickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        initial={location}
+        onConfirm={(loc) => {
+          setLocation(loc)
+          useCartStore.getState().showToast('Delivery location set ✓')
+        }}
+      />
     </div>
   )
 }
