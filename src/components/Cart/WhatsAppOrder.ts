@@ -3,7 +3,6 @@ import { DELIVERY_FEE } from '../../types'
 import { supabase, isSupabaseConfigured } from '../../lib/supabase'
 import { useCatalogStore } from '../../store/catalogStore'
 import { getEffectivePrice } from '../../lib/pricing'
-import type { DeliveryLocation } from '../../lib/deliveryLocation'
 
 export function formatLkr(amount: number): string {
   return `Rs. ${amount.toLocaleString('en-LK')}`
@@ -40,7 +39,7 @@ export function formatPhoneDisplay(input: string): string {
 export interface CustomerDetails {
   name: string
   phone: string
-  location: DeliveryLocation
+  address: string
 }
 
 function getDeliveryFee(): number {
@@ -58,13 +57,6 @@ export function buildWhatsAppMessage(
 ): string {
   const delivery = getDeliveryFee()
   const grandTotal = subtotal + delivery
-  const loc = customer.location
-  const sourceLabel =
-    loc.source === 'current' ? 'Customer GPS' : 'Customer pinned on map'
-  const accuracyLine =
-    loc.accuracyMeters != null
-      ? `Accuracy: ±${Math.round(loc.accuracyMeters)} m`
-      : null
 
   const lines = items.map((item, index) => {
     const lineTotal = linePrice(item) * item.quantity
@@ -76,13 +68,7 @@ export function buildWhatsAppMessage(
     '',
     `👤 *Customer:* ${customer.name}`,
     `📞 *Phone:* ${customer.phone}`,
-    '',
-    '📍 *Delivery location (tap map link)*',
-    loc.label,
-    `(${sourceLabel})`,
-    accuracyLine,
-    `🗺️ ${loc.mapsUrl}`,
-    `📌 ${loc.lat.toFixed(6)}, ${loc.lng.toFixed(6)}`,
+    `📍 *Address:* ${customer.address}`,
     '',
     '📦 *Order Items:*',
     ...lines,
@@ -92,9 +78,7 @@ export function buildWhatsAppMessage(
     `💳 *Grand Total:* ${formatLkr(grandTotal)}`,
     '',
     'Please confirm my order! ✅',
-  ]
-    .filter((line): line is string => line != null && line !== '')
-    .join('\n')
+  ].join('\n')
 }
 
 export function getWhatsAppUrl(message: string): string {
@@ -121,8 +105,6 @@ export async function saveOrderToSupabase(
     size: i.selectedSize,
   }))
 
-  const locationText = `${customer.location.label} | ${customer.location.mapsUrl}`
-
   const payload = {
     customer_name: customer.name,
     customer_phone: customer.phone,
@@ -136,7 +118,7 @@ export async function saveOrderToSupabase(
 
   const { error } = await supabase.from('orders').insert({
     ...payload,
-    customer_address: locationText,
+    customer_address: customer.address,
   })
 
   if (error) {
