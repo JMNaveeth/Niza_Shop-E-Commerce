@@ -2,6 +2,7 @@ import type { Product } from '../types'
 
 export const PHONE_COVERS_SLUG = 'phone-back-covers'
 export const PHONE_COVERS_CATEGORY_ID = 'cat-phone-covers'
+export const PHONE_COVERS_PATH = '/phone-back-covers'
 
 export interface PhoneBrand {
   id: string

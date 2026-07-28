@@ -5,7 +5,9 @@ import Toast from './components/Toast'
 import MobileBottomNav from './components/MobileBottomNav'
 import Home from './pages/Home'
 import ProductDetailPage from './pages/ProductDetailPage'
+import PhoneCoversPage from './pages/PhoneCoversPage'
 import AdminPage from './pages/AdminPage'
+import { PHONE_COVERS_PATH } from './lib/phoneBrands'
 
 export default function App() {
   return (
@@ -14,6 +16,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path={PHONE_COVERS_PATH} element={<PhoneCoversPage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Routes>

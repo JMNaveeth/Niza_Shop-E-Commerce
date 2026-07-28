@@ -1,19 +1,20 @@
 import { useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import HeroSection from '../components/Hero/HeroSection'
 import GenderTabs from '../components/Categories/GenderTabs'
 import CategoryChips from '../components/Categories/CategoryChips'
 import FlashBanner from '../components/FlashSale/FlashBanner'
 import FlashSaleOffers from '../components/FlashSale/FlashSaleOffers'
 import ProductGrid from '../components/Products/ProductGrid'
-import PhoneCoversCatalog from '../components/Products/PhoneCoversCatalog'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
 import { useCatalogStore } from '../store/catalogStore'
 import { useFlashSaleStatus } from '../hooks/useFlashSale'
-import { PHONE_COVERS_SLUG } from '../lib/phoneBrands'
+import { PHONE_COVERS_PATH, PHONE_COVERS_SLUG } from '../lib/phoneBrands'
 import type { Gender } from '../types'
 
 export default function Home() {
+  const navigate = useNavigate()
   const { products, loading } = useProducts()
   const { categories } = useCategories()
   const offers = useCatalogStore((s) => s.offers)
@@ -21,6 +22,14 @@ export default function Home() {
   const [gender, setGender] = useState<Gender>('all')
   const [categorySlug, setCategorySlug] = useState<string | null>(null)
   const catalogRef = useRef<HTMLDivElement>(null)
+
+  const handleCategorySelect = (slug: string | null) => {
+    if (slug === PHONE_COVERS_SLUG) {
+      navigate(PHONE_COVERS_PATH)
+      return
+    }
+    setCategorySlug(slug)
+  }
 
   const flashProducts = useMemo(
     () => products.filter((p) => p.is_flash_sale),
@@ -77,29 +86,23 @@ export default function Home() {
             categories={categories}
             gender={gender}
             selectedSlug={categorySlug}
-            onSelect={setCategorySlug}
+            onSelect={handleCategorySelect}
           />
         </div>
 
-        {categorySlug === PHONE_COVERS_SLUG ? (
-          <PhoneCoversCatalog products={filtered} loading={loading} />
-        ) : (
-          <>
-            <div className="flex items-end justify-between gap-3 pt-1">
-              <h2 className="text-lg font-bold text-gray-900 sm:text-2xl">
-                {gender === 'all'
-                  ? 'All Products'
-                  : gender === 'girls'
-                    ? 'Girls'
-                    : 'Boys'}
-              </h2>
-              <p className="shrink-0 text-sm text-gray-500">
-                {filtered.length} items
-              </p>
-            </div>
-            <ProductGrid products={filtered} loading={loading} />
-          </>
-        )}
+        <div className="flex items-end justify-between gap-3 pt-1">
+          <h2 className="text-lg font-bold text-gray-900 sm:text-2xl">
+            {gender === 'all'
+              ? 'All Products'
+              : gender === 'girls'
+                ? 'Girls'
+                : 'Boys'}
+          </h2>
+          <p className="shrink-0 text-sm text-gray-500">
+            {filtered.length} items
+          </p>
+        </div>
+        <ProductGrid products={filtered} loading={loading} />
       </div>
 
       <footer className="mt-6 border-t border-border bg-dark px-4 py-8 text-center text-white/70 sm:mt-8 sm:py-10">

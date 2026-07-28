@@ -5,7 +5,8 @@ export default function MobileBottomNav() {
   const location = useLocation()
   const itemCount = useCartStore((s) => s.getItemCount())
   const openCart = useCartStore((s) => s.openCart)
-  const isHome = location.pathname === '/'
+  const isHome =
+    location.pathname === '/' || location.pathname.startsWith('/phone-back-covers')
   const isAdmin = location.pathname.startsWith('/admin')
 
   if (isAdmin) return null

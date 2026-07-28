@@ -52,6 +52,7 @@ export interface Order {
   id: string
   customer_name: string
   customer_phone: string
+  customer_address?: string
   items: OrderItem[]
   subtotal: number
   delivery_fee: number
