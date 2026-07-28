@@ -3,6 +3,7 @@ import type { Product } from '../../types'
 import { useCartStore } from '../../store/cartStore'
 import { useFlashSaleStatus } from '../../hooks/useFlashSale'
 import { formatLkr } from '../Cart/WhatsAppOrder'
+import { PHONE_COVERS_CATEGORY_ID } from '../../lib/phoneBrands'
 
 interface ProductCardProps {
   product: Product
@@ -24,12 +25,21 @@ export default function ProductCard({ product }: ProductCardProps) {
   const compareAt = getCompareAt(product)
   const discount = getDiscount(product)
   const showFlashBadge = product.is_flash_sale && live && !soldOut
+  const isPhoneCover = product.category_id === PHONE_COVERS_CATEGORY_ID
+  const modelLabel =
+    isPhoneCover && product.sizes?.[0] && product.sizes[0] !== 'One Size'
+      ? product.sizes[0]
+      : null
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-border transition duration-300 sm:rounded-card sm:hover:-translate-y-1 sm:hover:shadow-lg">
       <Link
         to={`/product/${product.id}`}
-        className="relative block aspect-square bg-gradient-to-br from-pink-50 to-purple-50 active:opacity-95"
+        className={`relative block aspect-square active:opacity-95 ${
+          isPhoneCover
+            ? 'bg-gradient-to-br from-slate-100 via-indigo-50 to-fuchsia-50'
+            : 'bg-gradient-to-br from-pink-50 to-purple-50'
+        }`}
       >
         {product.images[0] ? (
           <img
@@ -62,6 +72,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         {showFlashBadge && (
           <span className="absolute bottom-1.5 left-1.5 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
             Flash
+          </span>
+        )}
+
+        {modelLabel && (
+          <span className="absolute bottom-1.5 right-1.5 max-w-[70%] truncate rounded-lg bg-dark/80 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm sm:bottom-2 sm:right-2 sm:px-2 sm:text-[10px]">
+            {modelLabel}
           </span>
         )}
       </Link>

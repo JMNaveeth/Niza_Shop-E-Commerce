@@ -66,17 +66,30 @@ export const useCatalogStore = create<CatalogState>()(
       revision: 0,
 
       initCatalog: async () => {
+        // Merge any newly added seed products without wiping admin/local edits.
+        const current = get().products
+        const existingIds = new Set(current.map((p) => p.id))
+        const missingSeed = SEED_PRODUCTS.filter((p) => !existingIds.has(p.id))
+        if (missingSeed.length > 0) {
+          set({
+            products: [
+              ...current,
+              ...attachCategories(missingSeed, SEED_CATEGORIES),
+            ].map(withCategory),
+          })
+        }
+
         // Never wipe admin edits on navigation — local catalog is live source of truth.
         // Only pull from Supabase when the catalog is still the empty seed bootstrap.
         set({ hydrated: true, loading: false })
 
         if (!isSupabaseConfigured || !supabase) return
 
-        const current = get().products
+        const catalog = get().products
         const onlySeed =
-          current.length > 0 && current.every((p) => !p.id.startsWith('local-'))
+          catalog.length > 0 && catalog.every((p) => !p.id.startsWith('local-'))
         // If user already edited locally (revision > 0) or has local products, skip refetch
-        if (get().revision > 0 || current.some((p) => p.id.startsWith('local-'))) {
+        if (get().revision > 0 || catalog.some((p) => p.id.startsWith('local-'))) {
           return
         }
 

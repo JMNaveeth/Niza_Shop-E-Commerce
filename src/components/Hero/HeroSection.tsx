@@ -46,11 +46,6 @@ export default function HeroSection({ onShopNow }: HeroSectionProps) {
           Niza <span className="bg-gradient-to-r from-primary via-[#ff4db8] to-gold bg-clip-text text-transparent">Shop</span>
         </p>
 
-        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary shadow-lg shadow-primary/20 backdrop-blur-md sm:mb-4 sm:text-xs">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#4ade80]" />
-          From Pettah to You
-        </span>
-
         <h1 className="max-w-[18ch] text-[1.75rem] font-extrabold leading-[1.15] text-white drop-shadow-md sm:max-w-3xl sm:text-5xl md:text-6xl">
           Shop the Latest{' '}
           <span className="bg-gradient-to-r from-white via-[#fce7f3] to-[#f9a8d4] bg-clip-text text-transparent">
